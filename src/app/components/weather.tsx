@@ -1,7 +1,6 @@
-import dayjs from "dayjs";
 import { cache, use } from "react";
-import { WeatherType } from "../types";
-
+import { DailyType, WeatherType } from "../types";
+import { DayCard, CurrentCard } from "../components/cards";
 const fetchWeather = cache(async (query: string) => {
   const cities = await fetch(`api/cities?` + query);
   const citiesJson = await cities.json();
@@ -34,36 +33,23 @@ export default ({ city }: { city: string }) => {
         {weather.error || "Something went wrong, try again later"}
       </p>
     );
-  else
+  else {
+    const { name, state, country } = weather;
     return (
       <div>
         <h1>
-          Weather for {weather.name} {weather.state} {weather.country}
+          Weather for
+          {[name, state, country].map((v, i) =>
+            v ? (i === 0 ? " " : ", ") + v : ""
+          )}
         </h1>
         <div className="grid sm:grid-cols-3 gap-4 ">
-          <div className="p-5 bg-green-500 text-white rounded">
-            <h2 className="text-green-A100">Current weather</h2>
-            <p>Temp: {weather.current.temp}</p>
-            <p>Clouds: {weather.current.clouds}</p>
-            <p>Wind_speed: {weather.current.wind_speed}</p>
-            <p>
-              Description: {weather.current.weather[0].main},{" "}
-              {weather.current.weather[0].description}
-            </p>
-          </div>
-          {weather.daily.map((day) => (
-            <div className="p-5 bg-green-500 text-white rounded">
-              <h2 className="text-green-A100">
-                {dayjs.unix(day.dt).format("dddd DD MMMM YYYY")}
-              </h2>
-              <p>Temperature: {day.temp.day}</p>
-              <p>Clouds: {day.clouds}</p>
-              <p>
-                Description: {day.weather[0].main}, {day.weather[0].description}
-              </p>
-            </div>
+          <CurrentCard weather={weather.current} />
+          {weather.daily.map((day: DailyType) => (
+            <DayCard key={day.dt} weather={day} />
           ))}
         </div>
       </div>
     );
+  }
 };
